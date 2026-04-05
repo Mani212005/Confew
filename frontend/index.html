@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cofue Distillation MVP</title>
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="hero">
+      <p class="eyebrow">Cofue</p>
+      <h1>Turn a long video into crisp learning notes.</h1>
+      <p class="sub">Paste a YouTube URL. Get key points, summary, and an infographic path in seconds.</p>
+    </header>
+
+    <main class="shell">
+      <section class="panel input-panel">
+        <label for="youtube-url">YouTube URL</label>
+        <div class="row">
+          <input id="youtube-url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+          <button id="generate-btn" type="button">Generate</button>
+        </div>
+        <p id="status" class="status">Idle</p>
+      </section>
+
+      <section class="panel output-panel" id="output-panel" hidden>
+        <h2 id="result-title">Result</h2>
+        <div class="meta-grid">
+          <article>
+            <h3>Summary</h3>
+            <p id="result-summary"></p>
+          </article>
+          <article>
+            <h3>Key Points</h3>
+            <ul id="result-points"></ul>
+          </article>
+        </div>
+        <p class="tiny">Infographic generated at: <code id="result-infographic"></code></p>
+      </section>
+    </main>
+
+    <script src="/app/app.js" defer></script>
+  </body>
+</html>

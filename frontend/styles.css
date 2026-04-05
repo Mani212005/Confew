@@ -1,0 +1,147 @@
+:root {
+  --paper: #f9f5eb;
+  --ink: #162038;
+  --accent: #d24f2d;
+  --accent-2: #2f8f83;
+  --panel: #fffdf8;
+  --line: #d8cdb7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 10% 10%, #ffe6cf 0%, transparent 36%),
+    radial-gradient(circle at 90% 15%, #d7efe9 0%, transparent 32%), var(--paper);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: linear-gradient(120deg, transparent 40%, rgba(0, 0, 0, 0.05) 50%, transparent 60%);
+}
+
+.hero {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 3.2rem 1.2rem 1rem;
+  animation: reveal 420ms ease-out;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18rem;
+  color: var(--accent-2);
+  font-weight: 700;
+  margin: 0 0 0.7rem;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.sub {
+  margin: 0.8rem 0 0;
+  max-width: 65ch;
+}
+
+.shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1rem 1.2rem 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  padding: 1rem;
+  box-shadow: 0 9px 22px rgba(21, 20, 31, 0.09);
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+input {
+  flex: 1;
+  border: 1px solid #b4aa9a;
+  border-radius: 10px;
+  padding: 0.78rem;
+  font-size: 1rem;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.78rem 1rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, var(--accent), #a73720);
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.04);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.status {
+  margin: 0.7rem 0 0;
+  color: #53535f;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.tiny {
+  margin: 0.8rem 0 0;
+  font-size: 0.92rem;
+  color: #5a5862;
+}
+
+@media (max-width: 760px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

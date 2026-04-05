@@ -24,6 +24,10 @@ class Settings:
     transcription_model: str
     groq_api_key: str
     groq_base_url: str
+    external_api_max_retries: int
+    external_api_initial_backoff_seconds: float
+    external_api_backoff_multiplier: float
+    external_api_max_backoff_seconds: float
 
 
 def get_settings() -> Settings:
@@ -59,5 +63,15 @@ def get_settings() -> Settings:
         groq_base_url=(
             os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1").strip()
             or "https://api.groq.com/openai/v1"
+        ),
+        external_api_max_retries=int(os.getenv("EXTERNAL_API_MAX_RETRIES", "2")),
+        external_api_initial_backoff_seconds=float(
+            os.getenv("EXTERNAL_API_INITIAL_BACKOFF_SECONDS", "0.5")
+        ),
+        external_api_backoff_multiplier=float(
+            os.getenv("EXTERNAL_API_BACKOFF_MULTIPLIER", "2.0")
+        ),
+        external_api_max_backoff_seconds=float(
+            os.getenv("EXTERNAL_API_MAX_BACKOFF_SECONDS", "5")
         ),
     )

@@ -9,6 +9,7 @@ from typing import Any
 
 from summary.config import get_settings
 from summary.exceptions import DistillationError
+from summary.utils.retry import call_with_retry
 from summary.utils.validators import ensure_non_empty_text
 
 _REQUIRED_FIELDS = {
@@ -94,14 +95,25 @@ def _openai_distill(text: str) -> dict[str, Any] | None:
             "Return JSON with keys: title, key_concepts, summary, detailed_explanation, "
             "examples, visual_representation_description, diagram_structure."
         )
-        response = client.chat.completions.create(
-            model=settings.llm_model,
-            temperature=0.2,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text},
-            ],
+
+        def _request() -> Any:
+            return client.chat.completions.create(
+                model=settings.llm_model,
+                temperature=0.2,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": text},
+                ],
+            )
+
+        response = call_with_retry(
+            _request,
+            max_retries=settings.external_api_max_retries,
+            initial_delay_seconds=settings.external_api_initial_backoff_seconds,
+            backoff_multiplier=settings.external_api_backoff_multiplier,
+            max_delay_seconds=settings.external_api_max_backoff_seconds,
         )
+
         content = response.choices[0].message.content or "{}"
         parsed = json.loads(content)
         if isinstance(parsed, dict):
@@ -131,17 +143,26 @@ def _openrouter_distill(text: str) -> dict[str, Any] | None:
             "examples, visual_representation_description, diagram_structure."
         )
 
-        response = client.chat.completions.create(
-            model=settings.openrouter_model,
-            temperature=0.2,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text},
-            ],
-            extra_headers={
-                "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "Cofue Distillation Engine",
-            },
+        def _request() -> Any:
+            return client.chat.completions.create(
+                model=settings.openrouter_model,
+                temperature=0.2,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": text},
+                ],
+                extra_headers={
+                    "HTTP-Referer": "http://localhost:8000",
+                    "X-Title": "Cofue Distillation Engine",
+                },
+            )
+
+        response = call_with_retry(
+            _request,
+            max_retries=settings.external_api_max_retries,
+            initial_delay_seconds=settings.external_api_initial_backoff_seconds,
+            backoff_multiplier=settings.external_api_backoff_multiplier,
+            max_delay_seconds=settings.external_api_max_backoff_seconds,
         )
 
         content = response.choices[0].message.content or "{}"

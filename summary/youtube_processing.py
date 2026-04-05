@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 from summary.config import get_settings
 from summary.exceptions import ExtractionError, ValidationError
+from summary.utils.retry import call_with_retry
 from summary.utils.validators import extract_video_id, validate_youtube_url
 
 
@@ -15,10 +16,21 @@ def fetch_youtube_transcript(url: str) -> str:
     valid_url = validate_youtube_url(url)
     video_id = extract_video_id(valid_url)
 
+    settings = get_settings()
+
     try:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
 
-        chunks = YouTubeTranscriptApi.get_transcript(video_id)
+        def _request() -> list[dict]:
+            return YouTubeTranscriptApi.get_transcript(video_id)
+
+        chunks = call_with_retry(
+            _request,
+            max_retries=settings.external_api_max_retries,
+            initial_delay_seconds=settings.external_api_initial_backoff_seconds,
+            backoff_multiplier=settings.external_api_backoff_multiplier,
+            max_delay_seconds=settings.external_api_max_backoff_seconds,
+        )
         transcript = " ".join(chunk.get("text", "") for chunk in chunks).strip()
         if transcript:
             return transcript
@@ -30,7 +42,7 @@ def fetch_youtube_transcript(url: str) -> str:
     except ValidationError:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise ExtractionError("Unable to fetch YouTube transcript") from exc
+        raise ExtractionError(f"Unable to fetch YouTube transcript: {exc}") from exc
 
 
 def whisper_transcribe(url: str) -> str:
@@ -49,6 +61,7 @@ def whisper_transcribe(url: str) -> str:
 
 def _download_audio_from_youtube(url: str, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
+    settings = get_settings()
 
     try:
         import yt_dlp  # type: ignore
@@ -65,7 +78,16 @@ def _download_audio_from_youtube(url: str, output_dir: Path) -> Path:
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
+            def _request() -> dict:
+                return ydl.extract_info(url, download=True)
+
+            info = call_with_retry(
+                _request,
+                max_retries=settings.external_api_max_retries,
+                initial_delay_seconds=settings.external_api_initial_backoff_seconds,
+                backoff_multiplier=settings.external_api_backoff_multiplier,
+                max_delay_seconds=settings.external_api_max_backoff_seconds,
+            )
             downloads = info.get("requested_downloads") or []
             if downloads and downloads[0].get("filepath"):
                 candidate = Path(downloads[0]["filepath"])
@@ -82,7 +104,7 @@ def _download_audio_from_youtube(url: str, output_dir: Path) -> Path:
                 if matches:
                     return matches[0]
     except Exception as exc:  # noqa: BLE001
-        raise ExtractionError("Unable to download YouTube audio for Whisper fallback") from exc
+        raise ExtractionError(f"Unable to download YouTube audio for Whisper fallback: {exc}") from exc
 
     raise ExtractionError("Downloaded audio file not found")
 
@@ -138,11 +160,20 @@ def _transcribe_audio_file(audio_path: Path) -> str:
             if extra_headers is not None:
                 kwargs["extra_headers"] = extra_headers
 
-            response = client.audio.transcriptions.create(**kwargs)
+            def _request() -> object:
+                return client.audio.transcriptions.create(**kwargs)
+
+            response = call_with_retry(
+                _request,
+                max_retries=settings.external_api_max_retries,
+                initial_delay_seconds=settings.external_api_initial_backoff_seconds,
+                backoff_multiplier=settings.external_api_backoff_multiplier,
+                max_delay_seconds=settings.external_api_max_backoff_seconds,
+            )
             transcript = getattr(response, "text", "")
             return str(transcript).strip()
     except Exception as exc:  # noqa: BLE001
-        raise ExtractionError("Whisper transcription failed") from exc
+        raise ExtractionError(f"Whisper transcription failed: {exc}") from exc
 
 
 def extract_transcript(url: str) -> str:

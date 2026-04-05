@@ -22,7 +22,7 @@ Legend:
 - [x] Add `.env` safety in `.gitignore` and provide `.env.example`.
 - [ ] Implement robust YouTube extraction using `youtube-transcript-api` end-to-end in production mode.
 - [x] Implement real Whisper fallback transcription pipeline (audio fetch + transcription), not placeholder-only fallback text.
-- [ ] Add retry/backoff and stronger error handling for external API calls (LLM + transcript services).
+- [x] Add retry/backoff and stronger error handling for external API calls (LLM + transcript services).
 - [ ] Add output JSON repair/validation fallback when LLM returns malformed JSON.
 - [ ] Add production logging/telemetry for extraction, LLM, and API failures.
 

@@ -9,9 +9,15 @@ def test_valid_youtube_url_returns_transcript(import_optional):
     if not hasattr(yt, "extract_transcript"):
         pytest.skip("extract_transcript is not implemented yet")
 
-    transcript = yt.extract_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    assert isinstance(transcript, str)
-    assert transcript.strip() != ""
+    original_fetch = yt.fetch_youtube_transcript
+    yt.fetch_youtube_transcript = lambda _url: "Transcript content from source"
+
+    try:
+        transcript = yt.extract_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        assert isinstance(transcript, str)
+        assert transcript.strip() != ""
+    finally:
+        yt.fetch_youtube_transcript = original_fetch
 
 
 def test_invalid_youtube_url_raises_value_error(import_optional):

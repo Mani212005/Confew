@@ -10,7 +10,13 @@ def test_youtube_to_summary_pipeline(import_optional):
     if not hasattr(pipeline, "process_youtube_url"):
         pytest.skip("process_youtube_url is not implemented yet")
 
-    result = pipeline.process_youtube_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    original_extract = pipeline.extract_transcript
+    pipeline.extract_transcript = lambda _url: "Input transformed through processing to output"
+
+    try:
+        result = pipeline.process_youtube_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    finally:
+        pipeline.extract_transcript = original_extract
 
     assert isinstance(result, dict)
     assert "summary" in result

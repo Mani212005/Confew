@@ -9,7 +9,13 @@ def test_post_process_youtube_valid_request(import_optional):
     if not hasattr(api, "process_youtube"):
         pytest.skip("process_youtube is not implemented yet")
 
-    response = api.process_youtube({"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"})
+    original_extract = api.extract_transcript
+    api.extract_transcript = lambda _url: "Input processing output educational transcript"
+
+    try:
+        response = api.process_youtube({"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"})
+    finally:
+        api.extract_transcript = original_extract
 
     assert isinstance(response, dict)
     assert "title" in response

@@ -112,13 +112,57 @@ def _openai_distill(text: str) -> dict[str, Any] | None:
     return None
 
 
+def _openrouter_distill(text: str) -> dict[str, Any] | None:
+    settings = get_settings()
+    if not settings.openrouter_api_key:
+        return None
+
+    try:
+        from openai import OpenAI  # type: ignore
+
+        client = OpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url,
+            timeout=settings.llm_timeout_seconds,
+        )
+
+        prompt = (
+            "Return JSON with keys: title, key_concepts, summary, detailed_explanation, "
+            "examples, visual_representation_description, diagram_structure."
+        )
+
+        response = client.chat.completions.create(
+            model=settings.openrouter_model,
+            temperature=0.2,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": text},
+            ],
+            extra_headers={
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "Cofue Distillation Engine",
+            },
+        )
+
+        content = response.choices[0].message.content or "{}"
+        parsed = json.loads(content)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        return None
+
+    return None
+
+
 def distill_content(raw_text: str) -> dict[str, Any]:
     """Distill cleaned text into the required structured output format."""
     text = ensure_non_empty_text(raw_text, "raw_text")
     settings = get_settings()
 
     llm_output: dict[str, Any] | None = None
-    if settings.llm_provider == "openai":
+    if settings.llm_provider == "openrouter":
+        llm_output = _openrouter_distill(text)
+    elif settings.llm_provider == "openai":
         llm_output = _openai_distill(text)
 
     if llm_output is None:

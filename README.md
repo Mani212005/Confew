@@ -40,6 +40,17 @@ You can also set `TRANSCRIPTION_PROVIDER=openai` or `TRANSCRIPTION_PROVIDER=groq
 "/Users/manijoshi/Summary /.venv/bin/python" -m uvicorn summary.http_api:app --reload
 ```
 
+### Telemetry
+
+Structured JSON logs are emitted for:
+
+- HTTP request lifecycle and failures
+- API processing failures
+- Transcript extraction and fallback failures
+- LLM provider failures and heuristic fallback usage
+
+Set `LOG_LEVEL` in `.env` (for example: `INFO`, `WARNING`, `ERROR`).
+
 ### Endpoints
 
 - `GET /health`

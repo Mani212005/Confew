@@ -28,6 +28,8 @@ class Settings:
     external_api_initial_backoff_seconds: float
     external_api_backoff_multiplier: float
     external_api_max_backoff_seconds: float
+    youtube_transcript_languages: list[str]
+    youtube_allow_auto_translate: bool
 
 
 def get_settings() -> Settings:
@@ -74,4 +76,19 @@ def get_settings() -> Settings:
         external_api_max_backoff_seconds=float(
             os.getenv("EXTERNAL_API_MAX_BACKOFF_SECONDS", "5")
         ),
+        youtube_transcript_languages=_parse_csv_list(
+            os.getenv("YOUTUBE_TRANSCRIPT_LANGUAGES", "en,en-US")
+        ),
+        youtube_allow_auto_translate=_parse_bool(
+            os.getenv("YOUTUBE_ALLOW_AUTO_TRANSLATE", "true")
+        ),
     )
+
+
+def _parse_csv_list(value: str) -> list[str]:
+    items = [part.strip() for part in value.split(",") if part.strip()]
+    return items or ["en", "en-US"]
+
+
+def _parse_bool(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}

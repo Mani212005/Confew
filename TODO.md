@@ -20,11 +20,11 @@ Legend:
 - [x] Add and pass test suite for unit/integration/API/performance/evaluation placeholders.
 - [x] Add `.env` loading and OpenRouter support with free model defaults.
 - [x] Add `.env` safety in `.gitignore` and provide `.env.example`.
-- [ ] Implement robust YouTube extraction using `youtube-transcript-api` end-to-end in production mode.
+- [x] Implement robust YouTube extraction using `youtube-transcript-api` end-to-end in production mode.
 - [x] Implement real Whisper fallback transcription pipeline (audio fetch + transcription), not placeholder-only fallback text.
 - [x] Add retry/backoff and stronger error handling for external API calls (LLM + transcript services).
-- [ ] Add output JSON repair/validation fallback when LLM returns malformed JSON.
-- [ ] Add production logging/telemetry for extraction, LLM, and API failures.
+- [x] Add output JSON repair/validation fallback when LLM returns malformed JSON.
+- [x] Add production logging/telemetry for extraction, LLM, and API failures.
 
 ## Have to Be done
 

@@ -33,7 +33,7 @@ def fetch_youtube_transcript(url: str) -> str:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
 
         transcript_list = call_with_retry(
-            lambda: YouTubeTranscriptApi.list_transcripts(video_id),
+            lambda: _get_transcript_list(video_id, YouTubeTranscriptApi),
             max_retries=settings.external_api_max_retries,
             initial_delay_seconds=settings.external_api_initial_backoff_seconds,
             backoff_multiplier=settings.external_api_backoff_multiplier,
@@ -107,6 +107,7 @@ def _download_audio_from_youtube(url: str, output_dir: Path) -> Path:
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
+        "noprogress": True,
         "noplaylist": True,
         "format": "bestaudio/best",
         "outtmpl": str(output_dir / "%(id)s.%(ext)s"),
@@ -215,6 +216,7 @@ def _transcribe_audio_file(audio_path: Path) -> str:
 def extract_transcript(url: str) -> str:
     """Extract transcript, using Whisper fallback when transcript is missing."""
     valid_url = validate_youtube_url(url)
+    settings = get_settings()
     operation_id = new_operation_id()
 
     try:
@@ -225,6 +227,19 @@ def extract_transcript(url: str) -> str:
     except ValidationError:
         raise
     except Exception as exc:
+        if not settings.youtube_enable_whisper_fallback:
+            log_event(
+                logger,
+                "youtube_transcript_failed_no_fallback",
+                level=40,
+                operation_id=operation_id,
+                **exception_to_fields(exc),
+            )
+            raise ExtractionError(
+                "Transcript unavailable and Whisper fallback is disabled. "
+                "Set YOUTUBE_ENABLE_WHISPER_FALLBACK=true to enable audio transcription fallback."
+            ) from exc
+
         log_event(
             logger,
             "youtube_transcript_primary_failed_using_fallback",
@@ -236,6 +251,25 @@ def extract_transcript(url: str) -> str:
         if not fallback.strip():
             raise ExtractionError("Both transcript extraction and fallback failed")
         return fallback
+
+
+def _get_transcript_list(video_id: str, api_cls: Any) -> Any:
+    """Return transcript listing for both old and new youtube-transcript-api versions."""
+    # Newer versions expose instance API: YouTubeTranscriptApi().list(video_id)
+    try:
+        api = api_cls()
+        if hasattr(api, "list"):
+            return api.list(video_id)
+    except Exception:
+        pass
+
+    # Older versions exposed class method: YouTubeTranscriptApi.list_transcripts(video_id)
+    if hasattr(api_cls, "list_transcripts"):
+        return api_cls.list_transcripts(video_id)
+
+    raise ExtractionError(
+        "Unsupported youtube-transcript-api version. Expected list() or list_transcripts() support."
+    )
 
 
 def _select_and_fetch_transcript(

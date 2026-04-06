@@ -30,6 +30,7 @@ class Settings:
     external_api_max_backoff_seconds: float
     youtube_transcript_languages: list[str]
     youtube_allow_auto_translate: bool
+    youtube_enable_whisper_fallback: bool
 
 
 def get_settings() -> Settings:
@@ -81,6 +82,9 @@ def get_settings() -> Settings:
         ),
         youtube_allow_auto_translate=_parse_bool(
             os.getenv("YOUTUBE_ALLOW_AUTO_TRANSLATE", "true")
+        ),
+        youtube_enable_whisper_fallback=_parse_bool(
+            os.getenv("YOUTUBE_ENABLE_WHISPER_FALLBACK", "true")
         ),
     )
 

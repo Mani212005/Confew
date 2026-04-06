@@ -34,6 +34,21 @@ TRANSCRIPTION_MODEL=openai/whisper-1
 
 You can also set `TRANSCRIPTION_PROVIDER=openai` or `TRANSCRIPTION_PROVIDER=groq` and provide matching keys.
 
+### Free Demo Mode (No Video Download)
+
+To avoid downloading audio during demos, use transcript-only mode:
+
+```env
+YOUTUBE_ENABLE_WHISPER_FALLBACK=false
+```
+
+In this mode:
+
+- If a video has captions/transcripts, processing works without download.
+- If a video has no transcript, the API returns a clear error instead of downloading audio.
+
+The backend supports both old and new `youtube-transcript-api` method styles automatically.
+
 ### Run
 
 ```bash
